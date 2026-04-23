@@ -8,3 +8,6 @@ export { SolanaTool } from "./solana.js";
 export { DFlowTool } from "./dflow.js";
 export { WalletTool } from "./wallet.js";
 export { TokenLaunchTool } from "./token-launch.js";
+export { PolymarketTool } from "./polymarket.js";
+export { BagsTool } from "./bags.js";
+export { KalshiTool } from "./kalshi.js";

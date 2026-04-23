@@ -166,6 +166,34 @@ export class DFlowTool {
   async searchEvents(query: string, params: Record<string, any> = {}): Promise<ToolResult> {
     return this.req(this.metadata, "GET", "/api/v1/search", { q: query, ...params });
   }
+  /**
+   * Subscribe to the DFlow priority-fees websocket stream. Collects `samples` updates
+   * (default 1) and returns them as JSON. Used for one-shot checks; long-running
+   * subscriptions should call this with more samples or drive WS directly.
+   */
+  async streamPriorityFees(samples = 1, timeoutMs = 10000): Promise<ToolResult> {
+    const miss = this.requireKey();
+    if (miss) return miss;
+    const wsBase = (process.env.DFLOW_TRADING_URL || "https://quote-api.dflow.net").replace(/^http/, "ws");
+    const url = `${wsBase}/priority-fees/stream`;
+    return new Promise<ToolResult>((resolve) => {
+      const collected: unknown[] = [];
+      const ws = new WebSocket(url, { headers: { "x-api-key": this.apiKey } });
+      const done = (err?: string) => {
+        try { ws.close(); } catch { /* ignore */ }
+        if (err && !collected.length) resolve({ success: false, error: `DFlow WS: ${err}` });
+        else resolve({ success: true, output: JSON.stringify(collected, null, 2), data: collected });
+      };
+      const timer = setTimeout(() => done(`timeout after ${timeoutMs}ms`), timeoutMs);
+      ws.on("message", (data) => {
+        try { collected.push(JSON.parse(data.toString())); } catch { collected.push(data.toString()); }
+        if (collected.length >= samples) { clearTimeout(timer); done(); }
+      });
+      ws.on("error", (e: Error) => { clearTimeout(timer); done(e.message); });
+      ws.on("close", () => { clearTimeout(timer); done(); });
+    });
+  }
+
   async getCandlesticks(marketTicker: string, params: Record<string, any> = {}): Promise<ToolResult> {
     return this.req(this.metadata, "GET", `/api/v1/candlesticks/${encodeURIComponent(marketTicker)}`, params);
   }

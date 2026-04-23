@@ -18,6 +18,9 @@ import {
   DFlowTool,
   WalletTool,
   TokenLaunchTool,
+  PolymarketTool,
+  BagsTool,
+  KalshiTool,
 } from "../tools/index.js";
 import { ToolResult } from "../types/index.js";
 import { EventEmitter } from "events";
@@ -56,6 +59,9 @@ export class GrokAgent extends EventEmitter {
   private dflow: DFlowTool;
   private wallet: WalletTool;
   private launcher: TokenLaunchTool;
+  private polymarket: PolymarketTool;
+  private bags: BagsTool;
+  private kalshi: KalshiTool;
   private chatHistory: ChatEntry[] = [];
   private messages: GrokMessage[] = [];
   private tokenCounter: TokenCounter;
@@ -94,6 +100,9 @@ export class GrokAgent extends EventEmitter {
     this.dflow = new DFlowTool();
     this.wallet = new WalletTool();
     this.launcher = new TokenLaunchTool(this.wallet);
+    this.polymarket = new PolymarketTool();
+    this.bags = new BagsTool(this.wallet);
+    this.kalshi = new KalshiTool();
     this.tokenCounter = createTokenCounter(modelToUse);
 
     // Initialize MCP servers if configured
