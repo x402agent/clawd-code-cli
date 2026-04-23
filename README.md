@@ -52,6 +52,11 @@
 - 📋 **Todo Lists** — plan and track tasks with visual priority flags
 - 🔌 **MCP Support** — extend with any Model Context Protocol server
 - 🪙 **Solana Tools** — query assets, prices, wallet balances via Helius DAS API + Birdeye
+- 📊 **Full Birdeye Suite** — token overview, metadata (single/multi), market data, trade data, search, trending, OHLCV, wallet portfolio
+- 🦋 **DFlow Trading** — swap quotes + build across DFlow-aggregated venues, prediction-market init, priority fees (REST + WebSocket)
+- 🔮 **Prediction Markets** — DFlow (Kalshi-on-Solana), Polymarket (Gamma + CLOB), Kalshi direct with RSA-PSS signing
+- 🚀 **Token Launches** — pump.fun via PumpPortal local signing + Bags.fm fee-sharing launches
+- 🔑 **Local Signing Wallet** — base58 / JSON-array keypair, signs versioned + legacy txs, confirmation-gated broadcasts
 - 🌐 **Web Search** — real-time search for Grok models (auto-detected)
 - 🔐 **Persistent Settings** — `~/.clawd/user-settings.json` remembers your API keys and model preferences
 
