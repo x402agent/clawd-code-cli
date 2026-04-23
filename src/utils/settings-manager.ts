@@ -6,7 +6,7 @@ import * as os from "os";
  * Current settings version - increment this when adding new models or changing settings structure
  * This triggers automatic migration for existing users
  */
-const SETTINGS_VERSION = 2;
+const SETTINGS_VERSION = 3;
 
 /**
  * User-level settings stored in ~/.clawd/user-settings.json
@@ -63,13 +63,15 @@ const DEFAULT_USER_SETTINGS: Partial<UserSettings> = {
     "grok-3-mini-fast",
     // Ollama models (use with baseURL: "http://localhost:11434/v1")
     "ollama/glm-5.1:cloud",
-    "ollama/gemma4:latest",
     "ollama/8bit/DeepSolana:latest",
     "ollama/minimax-m2.7:cloud",
     "ollama/minimax-m2.1:cloud",
     "ollama/kimi-k2.5:cloud",
+    "ollama/kimi-k2.6:cloud",
     "ollama/mxbai-embed-large:latest",
     // OpenRouter models (use with baseURL: "https://openrouter.ai/api/v1")
+    "openrouter/anthropic/claude-sonnet-4.6",
+    "openrouter/deepseek/deepseek-v3.2",
     "openrouter/anthropic/claude-opus-4.7",
     "openrouter/anthropic/claude-sonnet-4",
     "openrouter/anthropic/claude-3.5-sonnet",
@@ -229,8 +231,17 @@ export class SettingsManager {
       migrated.models = [...newModels, ...(migrated.models || [])];
     }
 
+    // Migration from version 2 to 3: Add free OpenRouter models wired into
+    // ClawdRouter / Vibe Studio (claude-sonnet-4.6, deepseek-v3.2).
+    if (fromVersion < 3) {
+      const defaultModels = DEFAULT_USER_SETTINGS.models || [];
+      const existingModels = new Set(migrated.models || []);
+      const newModels = defaultModels.filter(model => !existingModels.has(model));
+      migrated.models = [...newModels, ...(migrated.models || [])];
+    }
+
     // Add future migrations here:
-    // if (fromVersion < 3) { ... }
+    // if (fromVersion < 4) { ... }
 
     migrated.settingsVersion = SETTINGS_VERSION;
     return migrated;
@@ -408,35 +419,53 @@ export class SettingsManager {
    * Get available models list from user settings
    */
   public getAvailableModels(): string[] {
-    const models = this.getUserSetting("models");
-    return models || DEFAULT_USER_SETTINGS.models || [];
+    const models = this.getUserSetting("models") || DEFAULT_USER_SETTINGS.models || [];
+    // Merge in OPENROUTER_MODEL1, OPENROUTER_MODEL2, ... from env (auto-prefixed with "openrouter/")
+    const envModels = this.getEnvOpenRouterModels();
+    if (envModels.length === 0) return models;
+    const set = new Set<string>([...envModels, ...models]);
+    return Array.from(set);
   }
 
   /**
-   * Get API key from user settings or environment
+   * Read OPENROUTER_MODEL1..N from env and return them prefixed for the router.
+   * "anthropic/claude-sonnet-4.6" -> "openrouter/anthropic/claude-sonnet-4.6"
+   * Already-prefixed values are passed through.
+   */
+  public getEnvOpenRouterModels(): string[] {
+    const out: string[] = [];
+    for (const [k, v] of Object.entries(process.env)) {
+      if (!/^OPENROUTER_MODEL\d+$/.test(k)) continue;
+      const raw = (v || "").trim();
+      if (!raw) continue;
+      out.push(raw.startsWith("openrouter/") ? raw : `openrouter/${raw}`);
+    }
+    return out;
+  }
+
+  /**
+   * Get API key from user settings or environment.
+   * Accepts XAI_API_KEY (xAI's official name) and GROK_API_KEY (legacy) interchangeably.
    */
   public getApiKey(): string | undefined {
-    // First check environment variable
-    const envApiKey = process.env.GROK_API_KEY;
+    const envApiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
     if (envApiKey) {
       return envApiKey;
     }
 
-    // Then check user settings
     return this.getUserSetting("apiKey");
   }
 
   /**
-   * Get base URL from user settings or environment
+   * Get base URL from user settings or environment.
+   * Accepts XAI_BASE_URL and GROK_BASE_URL interchangeably.
    */
   public getBaseURL(): string {
-    // First check environment variable
-    const envBaseURL = process.env.GROK_BASE_URL;
+    const envBaseURL = process.env.XAI_BASE_URL || process.env.GROK_BASE_URL;
     if (envBaseURL) {
       return envBaseURL;
     }
 
-    // Then check user settings
     const userBaseURL = this.getUserSetting("baseURL");
     return (
       userBaseURL || DEFAULT_USER_SETTINGS.baseURL || "https://api.x.ai/v1"

@@ -90,17 +90,25 @@ async function saveCommandLineSettings(
 
 // Load model from user settings if not in environment
 function loadModel(): string | undefined {
-  // First check environment variables
-  let model = process.env.GROK_MODEL;
+  // First check environment variables (XAI_MODEL is the official name; GROK_MODEL is legacy)
+  let model = process.env.XAI_MODEL || process.env.GROK_MODEL;
 
   if (!model) {
-    // Use the unified model loading from settings manager
     try {
       const manager = getSettingsManager();
       model = manager.getCurrentModel();
     } catch (error) {
       // Ignore errors, model will remain undefined
     }
+  }
+
+  // Fallback: if no XAI key but OpenRouter is configured, default to the first
+  // OPENROUTER_MODEL{N} env var (e.g. OPENROUTER_MODEL1=anthropic/claude-sonnet-4.6).
+  if (!model && !process.env.XAI_API_KEY && !process.env.GROK_API_KEY && process.env.OPENROUTER_API_KEY) {
+    try {
+      const envModels = getSettingsManager().getEnvOpenRouterModels();
+      if (envModels.length > 0) model = envModels[0];
+    } catch {}
   }
 
   return model;
@@ -314,10 +322,10 @@ program
   .version("1.0.0")
   .argument("[message...]", "Initial message to send to Clawd")
   .option("-d, --directory <dir>", "set working directory", process.cwd())
-  .option("-k, --api-key <key>", "Grok API key (or set GROK_API_KEY env var)")
+  .option("-k, --api-key <key>", "xAI API key (or set XAI_API_KEY / GROK_API_KEY env var)")
   .option(
     "-u, --base-url <url>",
-    "Grok API base URL (or set GROK_BASE_URL env var)"
+    "xAI API base URL (or set XAI_BASE_URL / GROK_BASE_URL env var)"
   )
   .option(
     "-m, --model <model>",
@@ -352,9 +360,12 @@ program
       const model = options.model || loadModel();
       const maxToolRounds = parseInt(options.maxToolRounds) || 400;
 
-      if (!apiKey) {
+      // Accept OpenRouter-only mode: if no XAI key is set but OPENROUTER_API_KEY is,
+      // the per-model provider config will route through OpenRouter.
+      const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY);
+      if (!apiKey && !hasOpenRouter) {
         console.error(
-          "❌ Error: API key required. Set GROK_API_KEY, use --api-key, or set \"apiKey\" in ~/.clawd/user-settings.json"
+          "❌ Error: API key required. Set XAI_API_KEY (or GROK_API_KEY) or OPENROUTER_API_KEY, use --api-key, or set \"apiKey\" in ~/.clawd/user-settings.json"
         );
         process.exit(1);
       }
@@ -403,10 +414,10 @@ gitCommand
   .command("commit-and-push")
   .description("Generate AI commit message and push to remote")
   .option("-d, --directory <dir>", "set working directory", process.cwd())
-  .option("-k, --api-key <key>", "Grok API key (or set GROK_API_KEY env var)")
+  .option("-k, --api-key <key>", "xAI API key (or set XAI_API_KEY / GROK_API_KEY env var)")
   .option(
     "-u, --base-url <url>",
-    "Grok API base URL (or set GROK_BASE_URL env var)"
+    "xAI API base URL (or set XAI_BASE_URL / GROK_BASE_URL env var)"
   )
   .option(
     "-m, --model <model>",
@@ -439,7 +450,7 @@ gitCommand
 
       if (!apiKey) {
         console.error(
-          "❌ Error: API key required. Set GROK_API_KEY, use --api-key, or save to ~/.clawd/user-settings.json"
+          "❌ Error: API key required. Set XAI_API_KEY (or GROK_API_KEY), use --api-key, or save to ~/.clawd/user-settings.json"
         );
         process.exit(1);
       }
