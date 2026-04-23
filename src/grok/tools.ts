@@ -646,6 +646,89 @@ const BASE_GROK_TOOLS: GrokTool[] = [
       },
     },
   },
+  // --- DFlow priority fee WS ---
+  {
+    type: "function",
+    function: {
+      name: "dflow_priority_fees_stream",
+      description: "Subscribe to DFlow priority fees websocket and collect N updates (default 1). Returns samples as JSON.",
+      parameters: { type: "object", properties: { samples: { type: "number" }, timeout_ms: { type: "number" } }, required: [] },
+    },
+  },
+  // --- Polymarket ---
+  {
+    type: "function",
+    function: { name: "polymarket_events", description: "List Polymarket events (Gamma API, no auth). Params: limit, active, closed, order, ascending, tag_id, q.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } },
+  },
+  { type: "function", function: { name: "polymarket_event", description: "Polymarket event by id.", parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } } },
+  { type: "function", function: { name: "polymarket_markets", description: "List Polymarket markets.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "polymarket_market", description: "Polymarket market by id.", parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } } },
+  { type: "function", function: { name: "polymarket_search", description: "Search Polymarket events by query.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "number" } }, required: ["query"] } } },
+  { type: "function", function: { name: "polymarket_trending", description: "Trending Polymarket events by 24h volume.", parameters: { type: "object", properties: { limit: { type: "number" } }, required: [] } } },
+  { type: "function", function: { name: "polymarket_tags", description: "Polymarket tags.", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "polymarket_book", description: "Polymarket CLOB orderbook by token_id.", parameters: { type: "object", properties: { token_id: { type: "string" } }, required: ["token_id"] } } },
+  { type: "function", function: { name: "polymarket_price", description: "Polymarket CLOB price by token_id. side=buy|sell.", parameters: { type: "object", properties: { token_id: { type: "string" }, side: { type: "string", enum: ["buy", "sell"] } }, required: ["token_id"] } } },
+  { type: "function", function: { name: "polymarket_midpoint", description: "Midpoint price for a Polymarket token_id.", parameters: { type: "object", properties: { token_id: { type: "string" } }, required: ["token_id"] } } },
+  { type: "function", function: { name: "polymarket_spread", description: "Spread for a Polymarket token_id.", parameters: { type: "object", properties: { token_id: { type: "string" } }, required: ["token_id"] } } },
+  { type: "function", function: { name: "polymarket_trades", description: "Polymarket CLOB trade history for a market (condition id).", parameters: { type: "object", properties: { market: { type: "string" }, limit: { type: "number" } }, required: ["market"] } } },
+  { type: "function", function: { name: "polymarket_last_trade_price", description: "Last trade price for a Polymarket token_id.", parameters: { type: "object", properties: { token_id: { type: "string" } }, required: ["token_id"] } } },
+  { type: "function", function: { name: "polymarket_clob_markets", description: "CLOB markets list.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "polymarket_clob_market", description: "CLOB market by condition_id.", parameters: { type: "object", properties: { condition_id: { type: "string" } }, required: ["condition_id"] } } },
+
+  // --- Bags.fm ---
+  {
+    type: "function",
+    function: {
+      name: "bags_launch_token",
+      description: "Launch a Solana token via Bags.fm with fee sharing. Requires BAGS_API_KEY and SOLANA_PRIVATE_KEY.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string" }, symbol: { type: "string" }, description: { type: "string" },
+          image_url: { type: "string" }, twitter: { type: "string" }, website: { type: "string" }, telegram: { type: "string" },
+          initial_buy_sol: { type: "number" },
+          fee_recipients: { type: "array", items: { type: "object", properties: { wallet: { type: "string" }, percentage: { type: "number" } } } },
+        },
+        required: ["name", "symbol", "description"],
+      },
+    },
+  },
+  { type: "function", function: { name: "bags_claim_fees", description: "Claim accumulated Bags.fm fees for the local wallet (optionally a specific position_key).", parameters: { type: "object", properties: { position_key: { type: "string" } }, required: [] } } },
+  { type: "function", function: { name: "bags_swap", description: "Swap tokens via Bags.fm router.", parameters: { type: "object", properties: { input_mint: { type: "string" }, output_mint: { type: "string" }, amount: { type: "string" }, slippage_bps: { type: "number" } }, required: ["input_mint", "output_mint", "amount"] } } },
+  { type: "function", function: { name: "bags_positions", description: "List Bags.fm positions for the local wallet.", parameters: { type: "object", properties: {}, required: [] } } },
+
+  // --- Kalshi direct ---
+  { type: "function", function: { name: "kalshi_balance", description: "Kalshi account balance. Requires KALSHI_KEY_ID and KALSHI_PRIVATE_KEY (PEM).", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "kalshi_positions", description: "Kalshi open positions.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "kalshi_orders", description: "Kalshi orders list.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "kalshi_fills", description: "Kalshi fills history.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "kalshi_markets", description: "Kalshi markets list. Params: event_ticker, series_ticker, status, limit, cursor.", parameters: { type: "object", properties: { params: { type: "object" } }, required: [] } } },
+  { type: "function", function: { name: "kalshi_market", description: "Kalshi market by ticker.", parameters: { type: "object", properties: { ticker: { type: "string" } }, required: ["ticker"] } } },
+  { type: "function", function: { name: "kalshi_orderbook", description: "Kalshi orderbook for a market ticker.", parameters: { type: "object", properties: { ticker: { type: "string" }, depth: { type: "number" } }, required: ["ticker"] } } },
+  {
+    type: "function",
+    function: {
+      name: "kalshi_place_order",
+      description: "Place a Kalshi order. Prices in cents (1-99). Requires user confirmation.",
+      parameters: {
+        type: "object",
+        properties: {
+          ticker: { type: "string" },
+          side: { type: "string", enum: ["yes", "no"] },
+          action: { type: "string", enum: ["buy", "sell"] },
+          count: { type: "number" },
+          type: { type: "string", enum: ["limit", "market"] },
+          yes_price: { type: "number" },
+          no_price: { type: "number" },
+          time_in_force: { type: "string", enum: ["GTC", "IOC"] },
+          client_order_id: { type: "string" },
+        },
+        required: ["ticker", "side", "action", "count", "type"],
+      },
+    },
+  },
+  { type: "function", function: { name: "kalshi_cancel_order", description: "Cancel a Kalshi order by id.", parameters: { type: "object", properties: { order_id: { type: "string" } }, required: ["order_id"] } } },
+
   {
     type: "function",
     function: {
