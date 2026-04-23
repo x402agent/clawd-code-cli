@@ -875,6 +875,91 @@ Current working directory: ${process.cwd()}`,
             pool: args.pool,
           });
 
+        // --- DFlow priority fees WS ---
+        case "dflow_priority_fees_stream":
+          return await this.dflow.streamPriorityFees(args.samples ?? 1, args.timeout_ms ?? 10000);
+
+        // --- Polymarket ---
+        case "polymarket_events":
+          return await this.polymarket.getEvents(args.params || {});
+        case "polymarket_event":
+          return await this.polymarket.getEvent(args.id);
+        case "polymarket_markets":
+          return await this.polymarket.getMarkets(args.params || {});
+        case "polymarket_market":
+          return await this.polymarket.getMarket(args.id);
+        case "polymarket_search":
+          return await this.polymarket.searchEvents(args.query, args.limit);
+        case "polymarket_trending":
+          return await this.polymarket.getTrending(args.limit);
+        case "polymarket_tags":
+          return await this.polymarket.getTags();
+        case "polymarket_book":
+          return await this.polymarket.getBook(args.token_id);
+        case "polymarket_price":
+          return await this.polymarket.getPrice(args.token_id, args.side);
+        case "polymarket_midpoint":
+          return await this.polymarket.getMidpoint(args.token_id);
+        case "polymarket_spread":
+          return await this.polymarket.getSpread(args.token_id);
+        case "polymarket_trades":
+          return await this.polymarket.getTrades(args.market, args.limit);
+        case "polymarket_last_trade_price":
+          return await this.polymarket.getLastTradePrice(args.token_id);
+        case "polymarket_clob_markets":
+          return await this.polymarket.getClobMarkets(args.params || {});
+        case "polymarket_clob_market":
+          return await this.polymarket.getClobMarket(args.condition_id);
+
+        // --- Bags.fm ---
+        case "bags_launch_token":
+          return await this.bags.launchToken({
+            name: args.name, symbol: args.symbol, description: args.description,
+            imageUrl: args.image_url, twitter: args.twitter, website: args.website, telegram: args.telegram,
+            initialBuySol: args.initial_buy_sol, feeRecipients: args.fee_recipients,
+          });
+        case "bags_claim_fees":
+          return await this.bags.claimFees(args.position_key);
+        case "bags_swap":
+          return await this.bags.swap({
+            inputMint: args.input_mint, outputMint: args.output_mint,
+            amount: args.amount, slippageBps: args.slippage_bps,
+          });
+        case "bags_positions":
+          return await this.bags.listPositions();
+
+        // --- Kalshi direct ---
+        case "kalshi_balance":
+          return await this.kalshi.getBalance();
+        case "kalshi_positions":
+          return await this.kalshi.getPositions(args.params || {});
+        case "kalshi_orders":
+          return await this.kalshi.getOrders(args.params || {});
+        case "kalshi_fills":
+          return await this.kalshi.getFills(args.params || {});
+        case "kalshi_markets":
+          return await this.kalshi.getMarkets(args.params || {});
+        case "kalshi_market":
+          return await this.kalshi.getMarket(args.ticker);
+        case "kalshi_orderbook":
+          return await this.kalshi.getMarketOrderbook(args.ticker, args.depth);
+        case "kalshi_place_order": {
+          const approved = await this.confirmationTool.requestConfirmation({
+            operation: "kalshi_place_order",
+            filename: `${args.ticker} ${args.side} ${args.action} ${args.count}`,
+            description: `type=${args.type} yes=${args.yes_price ?? "-"} no=${args.no_price ?? "-"}`,
+          });
+          if (!approved.success) return approved;
+          return await this.kalshi.placeOrder({
+            ticker: args.ticker, side: args.side, action: args.action,
+            count: args.count, type: args.type,
+            yes_price: args.yes_price, no_price: args.no_price,
+            time_in_force: args.time_in_force, client_order_id: args.client_order_id,
+          });
+        }
+        case "kalshi_cancel_order":
+          return await this.kalshi.cancelOrder(args.order_id);
+
         default:
           // Check if this is an MCP tool
           if (toolCall.function.name.startsWith("mcp__")) {
