@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, isAxiosError } from "axios";
+import WebSocket from "ws";
 import type { ToolResult } from "../types/index.js";
 
 function wrap(err: unknown, prefix: string): ToolResult {
