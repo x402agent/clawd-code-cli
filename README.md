@@ -214,12 +214,16 @@ openai/o4-mini
 
 ### Ollama (localhost:11434)
 ```
-ollama/gemma4:latest
-ollama/DeepSolana:latest
-ollama/minimax-m2.7:cloud
+ollama/kimi-k2.6:cloud
+ollama/kimi-k2.5:cloud
 ollama/glm-5.1:cloud
+ollama/minimax-m2.7:cloud
+ollama/minimax-m2.1:cloud
+ollama/8bit/DeepSolana:latest
 ollama/mxbai-embed-large:latest
 ```
+
+Switch at runtime with `/models ollama/kimi-k2.6:cloud`, or persist with `/config set defaultModel ollama/kimi-k2.6:cloud`. Any Ollama model you `ollama pull` locally can be added on the fly via `/config add model ollama/<name>`.
 
 ---
 
