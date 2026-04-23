@@ -5,3 +5,6 @@ export { TodoTool } from "./todo-tool.js";
 export { ConfirmationTool } from "./confirmation-tool.js";
 export { SearchTool } from "./search.js";
 export { SolanaTool } from "./solana.js";
+export { DFlowTool } from "./dflow.js";
+export { WalletTool } from "./wallet.js";
+export { TokenLaunchTool } from "./token-launch.js";
