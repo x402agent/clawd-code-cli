@@ -359,7 +359,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "birdeye_token_list",
       description: "Paginated token list on Birdeye, sorted by a metric (default v24hUSD desc).",
-      parameters: { type: "object", properties: { sort_by: { type: "string" }, sort_type: { type: "string", enum: ["asc", "desc"] }, offset: { type: "number" }, limit: { type: "number" }, chain: { type: "string" } } },
+      parameters: { type: "object", properties: { sort_by: { type: "string" }, sort_type: { type: "string", enum: ["asc", "desc"] }, offset: { type: "number" }, limit: { type: "number" }, chain: { type: "string" } }, required: [] },
     },
   },
   {
@@ -367,7 +367,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "birdeye_trending",
       description: "Currently trending tokens on Birdeye.",
-      parameters: { type: "object", properties: { limit: { type: "number" }, chain: { type: "string" } } },
+      parameters: { type: "object", properties: { limit: { type: "number" }, chain: { type: "string" } }, required: [] },
     },
   },
   {
@@ -392,7 +392,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "wallet_address",
       description: "Get the public key of the locally configured Solana signing wallet (SOLANA_PRIVATE_KEY).",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
@@ -400,7 +400,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "wallet_balance",
       description: "Get SOL balance of the locally configured signing wallet.",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
@@ -417,7 +417,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_tokens",
       description: "List supported token mints on DFlow (any mint with an available trading pool at least once).",
-      parameters: { type: "object", properties: { with_decimals: { type: "boolean" } } },
+      parameters: { type: "object", properties: { with_decimals: { type: "boolean" } }, required: [] },
     },
   },
   {
@@ -425,7 +425,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_venues",
       description: "List venues (AMMs/CLOBs) DFlow aggregates for swaps.",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
@@ -433,7 +433,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_priority_fees",
       description: "Get current Solana priority fee estimates (medium/high/veryHigh micro-lamports per CU) from DFlow.",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
@@ -499,7 +499,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_events",
       description: "List prediction-market events. Pass params like category, tags, status, limit, cursor.",
-      parameters: { type: "object", properties: { params: { type: "object" } } },
+      parameters: { type: "object", properties: { params: { type: "object" } }, required: [] },
     },
   },
   {
@@ -515,7 +515,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_markets",
       description: "List prediction markets.",
-      parameters: { type: "object", properties: { params: { type: "object" } } },
+      parameters: { type: "object", properties: { params: { type: "object" } }, required: [] },
     },
   },
   {
@@ -547,7 +547,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_trades",
       description: "List off-chain trades for prediction markets.",
-      parameters: { type: "object", properties: { params: { type: "object" } } },
+      parameters: { type: "object", properties: { params: { type: "object" } }, required: [] },
     },
   },
   {
@@ -563,7 +563,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_onchain_trades",
       description: "List on-chain fills (actual Solana swaps) for prediction markets.",
-      parameters: { type: "object", properties: { params: { type: "object" } } },
+      parameters: { type: "object", properties: { params: { type: "object" } }, required: [] },
     },
   },
   {
@@ -587,7 +587,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_series",
       description: "List series templates (recurring events) — filter by category, tags, status, isInitialized.",
-      parameters: { type: "object", properties: { params: { type: "object" } } },
+      parameters: { type: "object", properties: { params: { type: "object" } }, required: [] },
     },
   },
   {
@@ -595,7 +595,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_tags_by_categories",
       description: "Tags organized by series categories.",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
@@ -603,7 +603,7 @@ const BASE_GROK_TOOLS: GrokTool[] = [
     function: {
       name: "dflow_filters_by_sports",
       description: "Filter options organized by sports for sports-category markets.",
-      parameters: { type: "object", properties: {} },
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {
