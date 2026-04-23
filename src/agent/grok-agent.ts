@@ -144,6 +144,10 @@ BLOCKCHAIN & TRADING TOOLS:
 - dflow_events / dflow_markets / dflow_orderbook / dflow_trades / dflow_live_data / dflow_series / dflow_search_events / dflow_candlesticks: Prediction-market metadata (Kalshi passthrough)
 - pump_launch_token: Launch a pump.fun SPL token with local signing
 - pump_trade: Buy/sell pump.fun or Raydium tokens with local signing
+- polymarket_*: Polymarket (Polygon) prediction markets — events, markets, orderbook, price, midpoint, spread, trending. Read-only; order placement requires L2 auth (not enabled).
+- bags_launch_token / bags_swap / bags_claim_fees / bags_positions: Bags.fm launch + fee-share + swaps (BAGS_API_KEY required)
+- kalshi_*: Direct Kalshi trading (KALSHI_KEY_ID + KALSHI_PRIVATE_KEY required). kalshi_place_order requires user confirmation.
+- dflow_priority_fees_stream: Live DFlow priority fees over WS
 
 REAL-TIME INFORMATION:
 You have access to real-time web search and X (Twitter) data. When users ask for current information, latest news, or recent events, you automatically have access to up-to-date information from the web and social media.
