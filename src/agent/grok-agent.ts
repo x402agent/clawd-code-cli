@@ -15,6 +15,9 @@ import {
   ConfirmationTool,
   SearchTool,
   SolanaTool,
+  DFlowTool,
+  WalletTool,
+  TokenLaunchTool,
 } from "../tools/index.js";
 import { ToolResult } from "../types/index.js";
 import { EventEmitter } from "events";
@@ -50,6 +53,9 @@ export class GrokAgent extends EventEmitter {
   private confirmationTool: ConfirmationTool;
   private search: SearchTool;
   private solana: SolanaTool;
+  private dflow: DFlowTool;
+  private wallet: WalletTool;
+  private launcher: TokenLaunchTool;
   private chatHistory: ChatEntry[] = [];
   private messages: GrokMessage[] = [];
   private tokenCounter: TokenCounter;
@@ -85,6 +91,9 @@ export class GrokAgent extends EventEmitter {
     this.confirmationTool = new ConfirmationTool();
     this.search = new SearchTool();
     this.solana = new SolanaTool();
+    this.dflow = new DFlowTool();
+    this.wallet = new WalletTool();
+    this.launcher = new TokenLaunchTool(this.wallet);
     this.tokenCounter = createTokenCounter(modelToUse);
 
     // Initialize MCP servers if configured
@@ -116,6 +125,16 @@ You have access to these tools:
 - solana_get_asset: Retrieve comprehensive data for Solana NFTs and digital assets using Helius DAS API
 - solana_get_price: Get latest token price information using Birdeye API
 - solana_get_wallet_balance: Get Solana wallet balance and token account information
+
+BLOCKCHAIN & TRADING TOOLS:
+- birdeye_*: Token data via Birdeye (overview, metadata, market-data, trade-data, search, token_list, trending, ohlcv, wallet_portfolio)
+- wallet_address / wallet_balance / wallet_sign_and_send: Local signing wallet (requires SOLANA_PRIVATE_KEY env). Always confirm before sending.
+- dflow_swap_quote + dflow_build_swap + wallet_sign_and_send: 3-step swap flow across DFlow-aggregated venues
+- dflow_tokens / dflow_venues / dflow_priority_fees: DFlow trading metadata
+- dflow_prediction_market_init: Init transaction for a prediction market (Kalshi on Solana via DFlow)
+- dflow_events / dflow_markets / dflow_orderbook / dflow_trades / dflow_live_data / dflow_series / dflow_search_events / dflow_candlesticks: Prediction-market metadata (Kalshi passthrough)
+- pump_launch_token: Launch a pump.fun SPL token with local signing
+- pump_trade: Buy/sell pump.fun or Raydium tokens with local signing
 
 REAL-TIME INFORMATION:
 You have access to real-time web search and X (Twitter) data. When users ask for current information, latest news, or recent events, you automatically have access to up-to-date information from the web and social media.
@@ -716,6 +735,136 @@ Current working directory: ${process.cwd()}`,
 
         case "solana_get_wallet_balance":
           return await this.solana.getWalletBalance(args.wallet_address);
+
+        // --- Birdeye ---
+        case "birdeye_token_overview":
+          return await this.solana.getTokenOverview(args.address, args.frames);
+        case "birdeye_token_metadata":
+          return await this.solana.getTokenMetadata(args.address, args.chain);
+        case "birdeye_token_metadata_multi":
+          return await this.solana.getTokenMetadataMulti(args.addresses, args.chain);
+        case "birdeye_token_market_data":
+          return await this.solana.getTokenMarketData(args.address, args.chain);
+        case "birdeye_token_market_data_multi":
+          return await this.solana.getTokenMarketDataMulti(args.addresses, args.chain);
+        case "birdeye_token_trade_data":
+          return await this.solana.getTokenTradeData(args.address, args.frames, args.chain);
+        case "birdeye_token_trade_data_multi":
+          return await this.solana.getTokenTradeDataMulti(args.addresses, args.frames, args.chain);
+        case "birdeye_search_token":
+          return await this.solana.searchToken(args.keyword, args.chain, args.limit);
+        case "birdeye_token_list":
+          return await this.solana.getTokenList(args.sort_by, args.sort_type, args.offset, args.limit, args.chain);
+        case "birdeye_trending":
+          return await this.solana.getTrending("rank", "asc", 0, args.limit, args.chain);
+        case "birdeye_ohlcv":
+          return await this.solana.getOhlcv(args.address, args.type, args.time_from, args.time_to, args.chain);
+        case "birdeye_wallet_portfolio":
+          return await this.solana.getWalletPortfolio(args.wallet, args.chain);
+
+        // --- Wallet ---
+        case "wallet_address":
+          return this.wallet.getPublicKey();
+        case "wallet_balance":
+          return await this.wallet.getBalance();
+        case "wallet_sign_and_send": {
+          const approved = await this.confirmationTool.requestConfirmation({
+            operation: "sign_and_send_transaction",
+            filename: "Solana transaction",
+            description: `Broadcast tx (length ${args.base64_tx?.length || 0})`,
+            showVSCodeOpen: false,
+          });
+          if (!approved.success) return approved;
+          return await this.wallet.signAndSend(args.base64_tx);
+        }
+
+        // --- DFlow Trading ---
+        case "dflow_tokens":
+          return args.with_decimals ? await this.dflow.getTokensWithDecimals() : await this.dflow.getTokens();
+        case "dflow_venues":
+          return await this.dflow.getVenues();
+        case "dflow_priority_fees":
+          return await this.dflow.getPriorityFees();
+        case "dflow_swap_quote":
+          return await this.dflow.getSwapQuote({
+            userPublicKey: args.user_public_key,
+            inputMint: args.input_mint,
+            outputMint: args.output_mint,
+            amount: args.amount,
+            slippageBps: args.slippage_bps,
+            swapMode: args.swap_mode,
+            venues: args.venues,
+          });
+        case "dflow_build_swap":
+          return await this.dflow.buildSwap({
+            userPublicKey: args.user_public_key,
+            quote: args.quote,
+            priorityFeeMicroLamports: args.priority_fee_micro_lamports,
+            computeUnitLimit: args.compute_unit_limit,
+          });
+        case "dflow_order_status":
+          return await this.dflow.getOrderStatus(args.order_id);
+        case "dflow_prediction_market_init":
+          return await this.dflow.getPredictionMarketInit(args.payer, args.outcome_mint);
+
+        // --- DFlow Metadata ---
+        case "dflow_events":
+          return await this.dflow.getEvents(args.params || {});
+        case "dflow_event":
+          return await this.dflow.getEvent(args.event_ticker);
+        case "dflow_markets":
+          return await this.dflow.getMarkets(args.params || {});
+        case "dflow_market":
+          return await this.dflow.getMarket(args.ticker);
+        case "dflow_orderbook":
+          return await this.dflow.getOrderbook(args.market_ticker);
+        case "dflow_orderbook_by_mint":
+          return await this.dflow.getOrderbookByMint(args.mint_address);
+        case "dflow_trades":
+          return await this.dflow.getTrades(args.params || {});
+        case "dflow_trades_by_mint":
+          return await this.dflow.getTradesByMint(args.mint_address, args.params || {});
+        case "dflow_onchain_trades":
+          return await this.dflow.getOnchainTrades(args.params || {});
+        case "dflow_live_data":
+          return await this.dflow.getLiveData(args.milestone_ids || []);
+        case "dflow_live_data_by_event":
+          return await this.dflow.getLiveDataByEvent(args.event_ticker, args.params || {});
+        case "dflow_series":
+          return await this.dflow.getSeries(args.params || {});
+        case "dflow_tags_by_categories":
+          return await this.dflow.getTagsByCategories();
+        case "dflow_filters_by_sports":
+          return await this.dflow.getFiltersBySports();
+        case "dflow_search_events":
+          return await this.dflow.searchEvents(args.query, args.params || {});
+        case "dflow_candlesticks":
+          return await this.dflow.getCandlesticks(args.market_ticker, args.params || {});
+
+        // --- Token launch / trade ---
+        case "pump_launch_token":
+          return await this.launcher.launchPumpToken({
+            name: args.name,
+            symbol: args.symbol,
+            description: args.description,
+            imageUrl: args.image_url,
+            twitter: args.twitter,
+            telegram: args.telegram,
+            website: args.website,
+            initialBuySol: args.initial_buy_sol,
+            slippageBps: args.slippage_bps,
+            priorityFeeSol: args.priority_fee_sol,
+          });
+        case "pump_trade":
+          return await this.launcher.pumpTrade({
+            mint: args.mint,
+            action: args.action,
+            amount: args.amount,
+            denominatedInSol: args.denominated_in_sol,
+            slippageBps: args.slippage_bps,
+            priorityFeeSol: args.priority_fee_sol,
+            pool: args.pool,
+          });
 
         default:
           // Check if this is an MCP tool

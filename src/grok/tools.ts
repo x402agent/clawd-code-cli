@@ -283,12 +283,386 @@ const BASE_GROK_TOOLS: GrokTool[] = [
       parameters: {
         type: "object",
         properties: {
-          wallet_address: {
-            type: "string",
-            description: "The Solana wallet address (public key) to query",
-          },
+          wallet_address: { type: "string", description: "The Solana wallet address (public key) to query" },
         },
         required: ["wallet_address"],
+      },
+    },
+  },
+  // --- Birdeye extended token data ---
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_overview",
+      description: "Birdeye token overview: price, market cap, FDV, liquidity, price changes across timeframes, unique wallets, volume, holder count.",
+      parameters: { type: "object", properties: { address: { type: "string" }, frames: { type: "string", description: "Optional comma-separated timeframes e.g. '1m,5m,1h,24h'" } }, required: ["address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_metadata",
+      description: "Birdeye token metadata: symbol, name, decimals, logo, social links for a single token.",
+      parameters: { type: "object", properties: { address: { type: "string" }, chain: { type: "string", description: "Chain name, default solana" } }, required: ["address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_metadata_multi",
+      description: "Birdeye metadata for up to 50 tokens at once.",
+      parameters: { type: "object", properties: { addresses: { type: "array", items: { type: "string" } }, chain: { type: "string" } }, required: ["addresses"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_market_data",
+      description: "Birdeye market data: price, liquidity, supply, market cap, FDV, holders.",
+      parameters: { type: "object", properties: { address: { type: "string" }, chain: { type: "string" } }, required: ["address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_market_data_multi",
+      description: "Birdeye market data for up to 20 tokens.",
+      parameters: { type: "object", properties: { addresses: { type: "array", items: { type: "string" } }, chain: { type: "string" } }, required: ["addresses"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_trade_data",
+      description: "Birdeye trade data: buy/sell counts, volume, unique wallets across timeframes.",
+      parameters: { type: "object", properties: { address: { type: "string" }, frames: { type: "string" }, chain: { type: "string" } }, required: ["address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_trade_data_multi",
+      description: "Birdeye trade data for up to 20 tokens.",
+      parameters: { type: "object", properties: { addresses: { type: "array", items: { type: "string" } }, frames: { type: "string" }, chain: { type: "string" } }, required: ["addresses"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_search_token",
+      description: "Search for tokens by keyword on Birdeye. Returns top matches sorted by 24h USD volume.",
+      parameters: { type: "object", properties: { keyword: { type: "string" }, chain: { type: "string" }, limit: { type: "number" } }, required: ["keyword"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_token_list",
+      description: "Paginated token list on Birdeye, sorted by a metric (default v24hUSD desc).",
+      parameters: { type: "object", properties: { sort_by: { type: "string" }, sort_type: { type: "string", enum: ["asc", "desc"] }, offset: { type: "number" }, limit: { type: "number" }, chain: { type: "string" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_trending",
+      description: "Currently trending tokens on Birdeye.",
+      parameters: { type: "object", properties: { limit: { type: "number" }, chain: { type: "string" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_ohlcv",
+      description: "OHLCV candle data for a token. type: 1m/5m/15m/30m/1H/2H/4H/6H/8H/12H/1D/3D/1W/1M.",
+      parameters: { type: "object", properties: { address: { type: "string" }, type: { type: "string" }, time_from: { type: "number" }, time_to: { type: "number" }, chain: { type: "string" } }, required: ["address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "birdeye_wallet_portfolio",
+      description: "All tokens held by a wallet via Birdeye.",
+      parameters: { type: "object", properties: { wallet: { type: "string" }, chain: { type: "string" } }, required: ["wallet"] },
+    },
+  },
+  // --- Wallet (signing) ---
+  {
+    type: "function",
+    function: {
+      name: "wallet_address",
+      description: "Get the public key of the locally configured Solana signing wallet (SOLANA_PRIVATE_KEY).",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "wallet_balance",
+      description: "Get SOL balance of the locally configured signing wallet.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "wallet_sign_and_send",
+      description: "Sign (with local SOLANA_PRIVATE_KEY) and send a base64-encoded Solana transaction. Requires user confirmation. Returns tx signature + explorer link.",
+      parameters: { type: "object", properties: { base64_tx: { type: "string" } }, required: ["base64_tx"] },
+    },
+  },
+  // --- DFlow Trading API ---
+  {
+    type: "function",
+    function: {
+      name: "dflow_tokens",
+      description: "List supported token mints on DFlow (any mint with an available trading pool at least once).",
+      parameters: { type: "object", properties: { with_decimals: { type: "boolean" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_venues",
+      description: "List venues (AMMs/CLOBs) DFlow aggregates for swaps.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_priority_fees",
+      description: "Get current Solana priority fee estimates (medium/high/veryHigh micro-lamports per CU) from DFlow.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_swap_quote",
+      description: "Get a DFlow swap quote across aggregated venues (Jupiter-style). Returns route, input/output amounts, price impact.",
+      parameters: {
+        type: "object",
+        properties: {
+          user_public_key: { type: "string" },
+          input_mint: { type: "string" },
+          output_mint: { type: "string" },
+          amount: { type: "string", description: "Raw amount in smallest units (lamports for SOL, base units for SPL)" },
+          slippage_bps: { type: "number" },
+          swap_mode: { type: "string", enum: ["ExactIn", "ExactOut"] },
+          venues: { type: "array", items: { type: "string" } },
+        },
+        required: ["user_public_key", "input_mint", "output_mint", "amount"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_build_swap",
+      description: "Build a base64 swap transaction from a DFlow quote object. Pass the result to wallet_sign_and_send.",
+      parameters: {
+        type: "object",
+        properties: {
+          user_public_key: { type: "string" },
+          quote: { type: "object" },
+          priority_fee_micro_lamports: { type: "number" },
+          compute_unit_limit: { type: "number" },
+        },
+        required: ["user_public_key", "quote"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_order_status",
+      description: "Get DFlow order status by order id.",
+      parameters: { type: "object", properties: { order_id: { type: "string" } }, required: ["order_id"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_prediction_market_init",
+      description: "Idempotent init transaction for a DFlow prediction market. Returns a base64 transaction the payer must sign.",
+      parameters: {
+        type: "object",
+        properties: { payer: { type: "string" }, outcome_mint: { type: "string" } },
+        required: ["payer", "outcome_mint"],
+      },
+    },
+  },
+  // --- DFlow Metadata API (Kalshi/Polymarket-style prediction markets) ---
+  {
+    type: "function",
+    function: {
+      name: "dflow_events",
+      description: "List prediction-market events. Pass params like category, tags, status, limit, cursor.",
+      parameters: { type: "object", properties: { params: { type: "object" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_event",
+      description: "Get a single prediction-market event by ticker.",
+      parameters: { type: "object", properties: { event_ticker: { type: "string" } }, required: ["event_ticker"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_markets",
+      description: "List prediction markets.",
+      parameters: { type: "object", properties: { params: { type: "object" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_market",
+      description: "Get a single market by ticker.",
+      parameters: { type: "object", properties: { ticker: { type: "string" } }, required: ["ticker"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_orderbook",
+      description: "Get orderbook for a prediction market by ticker.",
+      parameters: { type: "object", properties: { market_ticker: { type: "string" } }, required: ["market_ticker"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_orderbook_by_mint",
+      description: "Get orderbook by ledger/outcome mint address.",
+      parameters: { type: "object", properties: { mint_address: { type: "string" } }, required: ["mint_address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_trades",
+      description: "List off-chain trades for prediction markets.",
+      parameters: { type: "object", properties: { params: { type: "object" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_trades_by_mint",
+      description: "Trades for a specific mint address.",
+      parameters: { type: "object", properties: { mint_address: { type: "string" }, params: { type: "object" } }, required: ["mint_address"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_onchain_trades",
+      description: "List on-chain fills (actual Solana swaps) for prediction markets.",
+      parameters: { type: "object", properties: { params: { type: "object" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_live_data",
+      description: "Kalshi live data passthrough by milestone IDs (max 100). Structure varies per sport/category.",
+      parameters: { type: "object", properties: { milestone_ids: { type: "array", items: { type: "string" } } }, required: ["milestone_ids"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_live_data_by_event",
+      description: "Live data for an event ticker.",
+      parameters: { type: "object", properties: { event_ticker: { type: "string" }, params: { type: "object" } }, required: ["event_ticker"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_series",
+      description: "List series templates (recurring events) — filter by category, tags, status, isInitialized.",
+      parameters: { type: "object", properties: { params: { type: "object" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_tags_by_categories",
+      description: "Tags organized by series categories.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_filters_by_sports",
+      description: "Filter options organized by sports for sports-category markets.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_search_events",
+      description: "Search prediction-market events by title or ticker.",
+      parameters: { type: "object", properties: { query: { type: "string" }, params: { type: "object" } }, required: ["query"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "dflow_candlesticks",
+      description: "OHLCV candles for a prediction market.",
+      parameters: { type: "object", properties: { market_ticker: { type: "string" }, params: { type: "object" } }, required: ["market_ticker"] },
+    },
+  },
+  // --- Token launching (pump.fun via PumpPortal) ---
+  {
+    type: "function",
+    function: {
+      name: "pump_launch_token",
+      description: "Launch a new pump.fun SPL token. Uploads metadata to pump.fun IPFS, creates mint, signs locally with SOLANA_PRIVATE_KEY. Requires user confirmation and SOL balance.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          symbol: { type: "string" },
+          description: { type: "string" },
+          image_url: { type: "string" },
+          twitter: { type: "string" },
+          telegram: { type: "string" },
+          website: { type: "string" },
+          initial_buy_sol: { type: "number", description: "Creator dev buy amount in SOL" },
+          slippage_bps: { type: "number" },
+          priority_fee_sol: { type: "number" },
+        },
+        required: ["name", "symbol", "description"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "pump_trade",
+      description: "Buy or sell a pump.fun or Raydium token using PumpPortal local signing with SOLANA_PRIVATE_KEY.",
+      parameters: {
+        type: "object",
+        properties: {
+          mint: { type: "string" },
+          action: { type: "string", enum: ["buy", "sell"] },
+          amount: { type: "number", description: "SOL amount for buy (denominatedInSol=true), or token amount / percent string for sell" },
+          denominated_in_sol: { type: "boolean" },
+          slippage_bps: { type: "number" },
+          priority_fee_sol: { type: "number" },
+          pool: { type: "string", enum: ["pump", "raydium", "pump-amm", "auto"] },
+        },
+        required: ["mint", "action", "amount"],
       },
     },
   },
